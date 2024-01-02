@@ -14,7 +14,7 @@ def gerar_emoji():
     return random.choice(emojis)
 
 async def sendApiByCuisine(cuisine: str):
-    link = f"https://api.edamam.com/api/recipes/v2?type=public&app_id={AppID}&app_key={AppKey}&cuisineType={cuisine}"
+    link = f"https://api.edamam.com/api/recipes/v2?type=public&app_id={AppID}&app_key={AppKey}&random=true&cuisineType={cuisine}"
     print(link)
     response = requests.get(link)
     page = html.unescape(response.text)
@@ -38,13 +38,15 @@ async def sendApiByCuisine(cuisine: str):
     return embed
 
 async def sendApiByQuery(query: str):
-    link = f"https://api.edamam.com/api/recipes/v2?type=public&app_id={AppID}&app_key={AppKey}&q={query}"
+    link = f"https://api.edamam.com/api/recipes/v2?type=public&app_id={AppID}&app_key={AppKey}&random=true&q={query}"
+    print(link)
     response = requests.get(link)
     page = html.unescape(response.text)
     data = json.loads(str(page))
     embed = discord.Embed(
         title=f"Search results: '{query}'"
         )
+    
     for recipe in data['hits']:
         emoji = gerar_emoji()
         embed.add_field(
@@ -88,7 +90,10 @@ async def fetchRecipeById(id_recipe: str):
     else:
         embed.title=f"{emoji} {data['recipe']['label']}"
         ingredients = fetchIngredients(data['recipe']['ingredients'])
-        instructions = fetchInstructions(data['recipe']['instructionLines'])
+        if "instructionLines" in data['recipe']:
+            instructions = fetchInstructions(data['recipe']['instructionLines'])
+        else:
+            instructions = f"For instructions, click [here]({data['recipe']['url']})"
         healtLabels = ""
         for label in data['recipe']['healthLabels']:
             if label == data['recipe']['healthLabels'][-1]:
